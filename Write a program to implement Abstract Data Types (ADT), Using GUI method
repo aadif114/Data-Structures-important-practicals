@@ -1,0 +1,190 @@
+from tkinter import *
+from tkinter import ttk, messagebox
+
+# Student ADT
+class Student:
+    def __init__(self, roll, name, marks):
+        self.roll = roll
+        self.name = name
+        self.marks = marks
+
+students = []
+
+
+# Functions
+def refresh_table():
+    tree.delete(*tree.get_children())
+    for s in students:
+        tree.insert("", END, values=(s.roll, s.name, s.marks))
+
+
+def clear_fields():
+    roll_entry.delete(0, END)
+    name_entry.delete(0, END)
+    marks_entry.delete(0, END)
+
+
+def create_student():
+    roll = roll_entry.get()
+    name = name_entry.get()
+    marks = marks_entry.get()
+
+    if roll == "" or name == "" or marks == "":
+        messagebox.showwarning("Warning", "Please fill all fields!")
+        return
+
+    for s in students:
+        if s.roll == roll:
+            messagebox.showerror("Error", "Roll number already exists!")
+            return
+
+    students.append(Student(roll, name, marks))
+    refresh_table()
+    clear_fields()
+    status.config(text="Student Added Successfully", fg="green")
+
+
+def update_student():
+    roll = roll_entry.get()
+
+    for s in students:
+        if s.roll == roll:
+            s.name = name_entry.get()
+            s.marks = marks_entry.get()
+            refresh_table()
+            clear_fields()
+            status.config(text="Student Updated Successfully", fg="blue")
+            return
+
+    messagebox.showerror("Error", "Student Not Found")
+
+
+def delete_student():
+    roll = roll_entry.get()
+
+    answer = messagebox.askyesno("Confirm", "Delete this student?")
+    if answer:
+        for s in students:
+            if s.roll == roll:
+                students.remove(s)
+                refresh_table()
+                clear_fields()
+                status.config(text="Student Deleted Successfully", fg="red")
+                return
+
+        messagebox.showerror("Error", "Student Not Found")
+
+
+def search_student():
+    roll = roll_entry.get()
+
+    for s in students:
+        if s.roll == roll:
+            name_entry.delete(0, END)
+            marks_entry.delete(0, END)
+
+            name_entry.insert(0, s.name)
+            marks_entry.insert(0, s.marks)
+
+            status.config(text="Student Found", fg="purple")
+            return
+
+    messagebox.showerror("Error", "Student Not Found")
+
+
+# Main Window
+root = Tk()
+root.title("🎓 Student ADT Management System")
+root.geometry("800x600")
+root.configure(bg="#E8F6F3")
+
+# Title
+Label(root,
+      text="Student ADT Management System",
+      font=("Arial", 20, "bold"),
+      bg="#E8F6F3",
+      fg="#1A5276").pack(pady=15)
+
+# Input Frame
+frame = Frame(root, bg="#E8F6F3")
+frame.pack()
+
+Label(frame, text="Roll No", font=("Arial", 12), bg="#E8F6F3").grid(row=0, column=0, padx=10, pady=10)
+roll_entry = Entry(frame, font=("Arial", 12), width=25)
+roll_entry.grid(row=0, column=1)
+
+Label(frame, text="Name", font=("Arial", 12), bg="#E8F6F3").grid(row=1, column=0, padx=10, pady=10)
+name_entry = Entry(frame, font=("Arial", 12), width=25)
+name_entry.grid(row=1, column=1)
+
+Label(frame, text="Marks", font=("Arial", 12), bg="#E8F6F3").grid(row=2, column=0, padx=10, pady=10)
+marks_entry = Entry(frame, font=("Arial", 12), width=25)
+marks_entry.grid(row=2, column=1)
+
+# Button Frame
+btn_frame = Frame(root, bg="#E8F6F3")
+btn_frame.pack(pady=20)
+
+Button(btn_frame, text="➕ Create",
+       bg="#27AE60", fg="white",
+       font=("Arial", 11, "bold"),
+       width=12,
+       command=create_student).grid(row=0, column=0, padx=8)
+
+Button(btn_frame, text="✏ Update",
+       bg="#3498DB", fg="white",
+       font=("Arial", 11, "bold"),
+       width=12,
+       command=update_student).grid(row=0, column=1, padx=8)
+
+Button(btn_frame, text="❌ Delete",
+       bg="#E74C3C", fg="white",
+       font=("Arial", 11, "bold"),
+       width=12,
+       command=delete_student).grid(row=0, column=2, padx=8)
+
+Button(btn_frame, text="🔍 Search",
+       bg="#9B59B6", fg="white",
+       font=("Arial", 11, "bold"),
+       width=12,
+       command=search_student).grid(row=0, column=3, padx=8)
+
+Button(btn_frame, text="🧹 Clear",
+       bg="#F39C12", fg="white",
+       font=("Arial", 11, "bold"),
+       width=12,
+       command=clear_fields).grid(row=0, column=4, padx=8)
+
+# Table Frame
+table_frame = Frame(root)
+table_frame.pack(pady=20)
+
+scroll = Scrollbar(table_frame)
+scroll.pack(side=RIGHT, fill=Y)
+
+tree = ttk.Treeview(table_frame,
+                    columns=("Roll", "Name", "Marks"),
+                    show="headings",
+                    yscrollcommand=scroll.set)
+
+tree.heading("Roll", text="Roll No")
+tree.heading("Name", text="Name")
+tree.heading("Marks", text="Marks")
+
+tree.column("Roll", width=100, anchor=CENTER)
+tree.column("Name", width=250, anchor=CENTER)
+tree.column("Marks", width=100, anchor=CENTER)
+
+tree.pack()
+
+scroll.config(command=tree.yview)
+
+# Status Bar
+status = Label(root,
+               text="Welcome!",
+               bg="#D6EAF8",
+               fg="black",
+               font=("Arial", 12, "bold"))
+status.pack(fill=X, side=BOTTOM)
+
+root.mainloop()
