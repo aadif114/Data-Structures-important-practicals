@@ -1,0 +1,205 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+
+stack = []
+
+
+def update_stack():
+    stack_list.delete(0, tk.END)
+    for item in reversed(stack):
+        stack_list.insert(tk.END, item)
+
+def push():
+    value = stack_entry.get()
+    if value == "":
+        messagebox.showwarning("Warning", "Please enter a value!")
+        return
+
+    stack.append(value)
+    stack_entry.delete(0, tk.END)
+    update_stack()
+    result.config(text=f"✔ '{value}' pushed into stack", fg="#2ecc71")
+
+def pop():
+    if not stack:
+        messagebox.showerror("Error", "Stack Underflow!")
+        return
+
+    value = stack.pop()
+    update_stack()
+    result.config(text=f"✔ Popped: {value}", fg="#e74c3c")
+
+def peek():
+    if not stack:
+        messagebox.showerror("Error", "Stack is Empty!")
+    else:
+        result.config(text=f"Top Element: {stack[-1]}", fg="#3498db")
+
+def delimiter():
+    expr = expr_entry.get()
+    s = []
+    pairs = {')':'(', ']':'[', '}':'{'}
+
+    for ch in expr:
+        if ch in "([{":
+            s.append(ch)
+        elif ch in ")]}":
+            if not s or s.pop()!=pairs[ch]:
+                result.config(text="❌ Delimiters NOT Balanced", fg="red")
+                return
+
+    if not s:
+        result.config(text="✅ Delimiters Balanced", fg="green")
+    else:
+        result.config(text="❌ Delimiters NOT Balanced", fg="red")
+
+def prefix_postfix():
+    prefix = expr_entry.get()
+    s = []
+
+    try:
+        for ch in reversed(prefix):
+            if ch.isalnum():
+                s.append(ch)
+            else:
+                a = s.pop()
+                b = s.pop()
+                s.append(a+b+ch)
+
+        result.config(text="Postfix : " + s[-1], fg="#8e44ad")
+
+    except:
+        result.config(text="Invalid Prefix Expression", fg="red")
+
+def evaluate():
+    prefix = expr_entry.get()
+    s = []
+
+    try:
+        for ch in reversed(prefix):
+            if ch.isdigit():
+                s.append(int(ch))
+            else:
+                a = s.pop()
+                b = s.pop()
+
+                if ch == '+':
+                    s.append(a+b)
+                elif ch == '-':
+                    s.append(a-b)
+                elif ch == '*':
+                    s.append(a*b)
+                elif ch == '/':
+                    s.append(a//b)
+
+        result.config(text="Result = " + str(s[-1]), fg="#16a085")
+
+    except:
+        result.config(text="Invalid Expression", fg="red")
+
+
+root = tk.Tk()
+root.title("Stack Visualizer")
+root.geometry("750x650")
+root.configure(bg="#1e1e2f")
+root.resizable(False, False)
+
+style = ttk.Style()
+style.theme_use("clam")
+
+title = tk.Label(
+    root,
+    text="📚 STACK VISUALIZER",
+    font=("Segoe UI", 22, "bold"),
+    bg="#1e1e2f",
+    fg="white"
+)
+title.pack(pady=15)
+
+
+frame1 = tk.LabelFrame(
+    root,
+    text="Stack Operations",
+    font=("Segoe UI",12,"bold"),
+    bg="#2c3e50",
+    fg="white",
+    padx=15,
+    pady=15
+)
+frame1.pack(padx=20,pady=10,fill="x")
+
+stack_entry = ttk.Entry(frame1,font=("Segoe UI",12),width=25)
+stack_entry.grid(row=0,column=0,padx=10)
+
+ttk.Button(frame1,text="Push",command=push).grid(row=0,column=1,padx=5)
+ttk.Button(frame1,text="Pop",command=pop).grid(row=0,column=2,padx=5)
+ttk.Button(frame1,text="Peek",command=peek).grid(row=0,column=3,padx=5)
+
+frame2 = tk.LabelFrame(
+    root,
+    text="Current Stack (Top → Bottom)",
+    font=("Segoe UI",12,"bold"),
+    bg="#2c3e50",
+    fg="white",
+    padx=10,
+    pady=10
+)
+frame2.pack(padx=20,pady=10,fill="both")
+
+stack_list = tk.Listbox(
+    frame2,
+    width=30,
+    height=8,
+    font=("Consolas",13),
+    bg="#ecf0f1",
+    fg="#2c3e50"
+)
+stack_list.pack()
+
+
+frame3 = tk.LabelFrame(
+    root,
+    text="Expression Operations",
+    font=("Segoe UI",12,"bold"),
+    bg="#2c3e50",
+    fg="white",
+    padx=15,
+    pady=15
+)
+frame3.pack(padx=20,pady=10,fill="x")
+
+expr_entry = ttk.Entry(frame3,font=("Segoe UI",12),width=40)
+expr_entry.grid(row=0,column=0,columnspan=3,pady=10)
+
+ttk.Button(frame3,text="Delimiter Match",
+           command=delimiter).grid(row=1,column=0,padx=5,pady=10)
+
+ttk.Button(frame3,text="Prefix → Postfix",
+           command=prefix_postfix).grid(row=1,column=1,padx=5,pady=10)
+
+ttk.Button(frame3,text="Evaluate Prefix",
+           command=evaluate).grid(row=1,column=2,padx=5,pady=10)
+
+
+
+result = tk.Label(
+    root,
+    text="Welcome! Perform any Stack operation.",
+    font=("Segoe UI",13,"bold"),
+    bg="#34495e",
+    fg="white",
+    width=60,
+    height=3
+)
+result.pack(pady=20)
+
+footer = tk.Label(
+    root,
+    text="Data Structures using Python • Stack GUI",
+    bg="#1e1e2f",
+    fg="gray",
+    font=("Segoe UI",10)
+)
+footer.pack(side="bottom",pady=10)
+
+root.mainloop()
