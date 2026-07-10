@@ -1,0 +1,390 @@
+import tkinter as tk
+from tkinter import messagebox
+
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.prev = None
+        self.next = None
+
+class DoublyLinkedList:
+    def __init__(self):
+        self.head = None
+
+    def insert_beginning(self, data):
+        new = Node(data)
+
+        if self.head is None:
+            self.head = new
+            return
+
+        new.next = self.head
+        self.head.prev = new
+        self.head = new
+
+    def insert_end(self, data):
+        new = Node(data)
+
+        if self.head is None:
+            self.head = new
+            return
+
+        temp = self.head
+
+        while temp.next:
+            temp = temp.next
+
+        temp.next = new
+        new.prev = temp
+
+    def insert_position(self, data, pos):
+
+        if pos <= 1:
+            self.insert_beginning(data)
+            return True
+
+        temp = self.head
+        count = 1
+
+        while temp and count < pos - 1:
+            temp = temp.next
+            count += 1
+
+        if temp is None:
+            return False
+
+        new = Node(data)
+
+        new.next = temp.next
+        new.prev = temp
+
+        if temp.next:
+            temp.next.prev = new
+
+        temp.next = new
+        return True
+
+    def delete_beginning(self):
+
+        if self.head is None:
+            return False
+
+        self.head = self.head.next
+
+        if self.head:
+            self.head.prev = None
+
+        return True
+
+    def delete_end(self):
+
+        if self.head is None:
+            return False
+
+        if self.head.next is None:
+            self.head = None
+            return True
+
+        temp = self.head
+
+        while temp.next:
+            temp = temp.next
+
+        temp.prev.next = None
+        return True
+
+    def delete_position(self, pos):
+
+        if self.head is None:
+            return False
+
+        if pos == 1:
+            return self.delete_beginning()
+
+        temp = self.head
+        count = 1
+
+        while temp and count < pos:
+            temp = temp.next
+            count += 1
+
+        if temp is None:
+            return False
+
+        if temp.next:
+            temp.next.prev = temp.prev
+
+        temp.prev.next = temp.next
+
+        return True
+
+    def forward(self):
+
+        if self.head is None:
+            return "NULL"
+
+        temp = self.head
+        s = "NULL ⇄ "
+
+        while temp:
+            s += "[" + str(temp.data) + "]"
+
+            if temp.next:
+                s += " ⇄ "
+
+            temp = temp.next
+
+        s += " ⇄ NULL"
+
+        return s
+
+    def backward(self):
+
+        if self.head is None:
+            return "NULL"
+
+        temp = self.head
+
+        while temp.next:
+            temp = temp.next
+
+        s = "NULL ⇄ "
+
+        while temp:
+            s += "[" + str(temp.data) + "]"
+
+            if temp.prev:
+                s += " ⇄ "
+
+            temp = temp.prev
+
+        s += " ⇄ NULL"
+
+        return s
+
+
+dll = DoublyLinkedList()
+
+
+root = tk.Tk()
+root.title("Doubly Linked List Visualizer")
+root.geometry("850x700")
+root.configure(bg="#E3F2FD")
+
+
+title = tk.Label(
+    root,
+    text="DOUBLY LINKED LIST VISUALIZER",
+    font=("Segoe UI", 22, "bold"),
+    bg="#1565C0",
+    fg="white",
+    pady=12,
+)
+
+title.pack(fill="x")
+
+
+input_frame = tk.Frame(root, bg="#E3F2FD")
+input_frame.pack(pady=20)
+
+tk.Label(
+    input_frame,
+    text="Enter Data",
+    font=("Segoe UI", 12, "bold"),
+    bg="#E3F2FD",
+    fg="#0D47A1",
+).grid(row=0, column=0, padx=10, pady=8)
+
+data_entry = tk.Entry(
+    input_frame,
+    font=("Segoe UI", 13),
+    justify="center",
+    width=18,
+)
+data_entry.grid(row=0, column=1)
+
+tk.Label(
+    input_frame,
+    text="Position",
+    font=("Segoe UI", 12, "bold"),
+    bg="#E3F2FD",
+    fg="#0D47A1",
+).grid(row=1, column=0, padx=10, pady=8)
+
+pos_entry = tk.Entry(
+    input_frame,
+    font=("Segoe UI", 13),
+    justify="center",
+    width=18,
+)
+pos_entry.grid(row=1, column=1)
+
+
+output = tk.Label(
+    root,
+    text="Linked List is Empty",
+    bg="white",
+    fg="#0D47A1",
+    font=("Consolas", 15, "bold"),
+    width=70,
+    height=5,
+    relief="solid",
+    bd=3,
+)
+
+output.pack(pady=20)
+
+
+def update_forward():
+    output.config(text="Forward View\n\n" + dll.forward())
+
+
+def show_backward():
+    output.config(text="Backward View\n\n" + dll.backward())
+
+
+def get_data():
+
+    try:
+        return int(data_entry.get())
+    except:
+        messagebox.showerror("Error", "Enter valid integer data.")
+        return None
+
+
+def get_position():
+
+    try:
+        return int(pos_entry.get())
+    except:
+        messagebox.showerror("Error", "Enter valid position.")
+        return None
+
+def insert_begin():
+
+    data = get_data()
+
+    if data is not None:
+        dll.insert_beginning(data)
+        update_forward()
+
+
+def insert_end():
+
+    data = get_data()
+
+    if data is not None:
+        dll.insert_end(data)
+        update_forward()
+
+
+def insert_pos():
+
+    data = get_data()
+    pos = get_position()
+
+    if data is not None and pos is not None:
+
+        if dll.insert_position(data, pos):
+            update_forward()
+        else:
+            messagebox.showerror("Error", "Invalid Position")
+
+
+def delete_begin():
+
+    if dll.delete_beginning():
+        update_forward()
+    else:
+        messagebox.showerror("Error", "List is Empty")
+
+
+def delete_end():
+
+    if dll.delete_end():
+        update_forward()
+    else:
+        messagebox.showerror("Error", "List is Empty")
+
+
+def delete_pos():
+
+    pos = get_position()
+
+    if pos is not None:
+
+        if dll.delete_position(pos):
+            update_forward()
+        else:
+            messagebox.showerror("Error", "Invalid Position")
+
+
+button_style = {
+    "font": ("Segoe UI", 11, "bold"),
+    "bg": "#42A5F5",
+    "fg": "white",
+    "activebackground": "#1E88E5",
+    "activeforeground": "white",
+    "width": 22,
+    "height": 2,
+    "cursor": "hand2",
+    "bd": 0,
+}
+
+
+button_frame = tk.Frame(root, bg="#E3F2FD")
+button_frame.pack()
+
+tk.Button(button_frame,
+          text="Insert Beginning",
+          command=insert_begin,
+          **button_style).grid(row=0, column=0, padx=8, pady=8)
+
+tk.Button(button_frame,
+          text="Insert End",
+          command=insert_end,
+          **button_style).grid(row=0, column=1, padx=8, pady=8)
+
+tk.Button(button_frame,
+          text="Insert Position",
+          command=insert_pos,
+          **button_style).grid(row=1, column=0, padx=8, pady=8)
+
+tk.Button(button_frame,
+          text="Delete Beginning",
+          command=delete_begin,
+          **button_style).grid(row=1, column=1, padx=8, pady=8)
+
+tk.Button(button_frame,
+          text="Delete End",
+          command=delete_end,
+          **button_style).grid(row=2, column=0, padx=8, pady=8)
+
+tk.Button(button_frame,
+          text="Delete Position",
+          command=delete_pos,
+          **button_style).grid(row=2, column=1, padx=8, pady=8)
+
+tk.Button(button_frame,
+          text="Display Forward",
+          command=update_forward,
+          **button_style).grid(row=3, column=0, padx=8, pady=8)
+
+tk.Button(button_frame,
+          text="Display Backward",
+          command=show_backward,
+          **button_style).grid(row=3, column=1, padx=8, pady=8)
+
+tk.Button(
+    root,
+    text="EXIT",
+    command=root.destroy,
+    font=("Segoe UI", 12, "bold"),
+    bg="#E53935",
+    fg="white",
+    activebackground="#C62828",
+    width=20,
+    cursor="hand2",
+).pack(pady=20)
+
+root.mainloop()
