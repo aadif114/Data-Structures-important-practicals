@@ -1,0 +1,76 @@
+import tkinter as tk
+from tkinter import messagebox
+
+
+class QueueGUI:
+    def __init__(self, root):
+        self.queue = []
+        self.max_size = 5
+
+        root.title("Queue Operations")
+        root.geometry("450x450")
+        root.resizable(False, False)
+
+        tk.Label(root, text="Queue Operations", font=("Arial", 18, "bold")).pack(pady=10)
+
+        self.entry = tk.Entry(root, font=("Arial", 14), width=20)
+        self.entry.pack(pady=5)
+
+        tk.Button(root, text="Enqueue", width=15, command=self.enqueue).pack(pady=3)
+        tk.Button(root, text="Dequeue", width=15, command=self.dequeue).pack(pady=3)
+        tk.Button(root, text="Peek", width=15, command=self.peek).pack(pady=3)
+        tk.Button(root, text="Clear Queue", width=15, command=self.clear_queue).pack(pady=3)
+
+        tk.Label(root, text="Current Queue").pack(pady=5)
+
+        self.listbox = tk.Listbox(root, width=35, height=8, font=("Arial", 12))
+        self.listbox.pack()
+
+        self.status = tk.Label(root, text="", fg="blue", font=("Arial", 11))
+        self.status.pack(pady=10)
+
+    def update_list(self):
+        self.listbox.delete(0, tk.END)
+        for item in self.queue:
+            self.listbox.insert(tk.END, item)
+
+    def enqueue(self):
+        item = self.entry.get()
+
+        if item == "":
+            messagebox.showwarning("Warning", "Enter an item.")
+            return
+
+        if len(self.queue) >= self.max_size:
+            messagebox.showerror("Queue Full", "Queue is full!")
+            return
+
+        self.queue.append(item)
+        self.entry.delete(0, tk.END)
+        self.update_list()
+        self.status.config(text=f"Enqueued: {item}")
+
+    def dequeue(self):
+        if not self.queue:
+            messagebox.showerror("Queue Empty", "Queue is empty!")
+            return
+
+        item = self.queue.pop(0)
+        self.update_list()
+        self.status.config(text=f"Dequeued: {item}")
+
+    def peek(self):
+        if not self.queue:
+            messagebox.showinfo("Queue", "Queue is empty.")
+        else:
+            messagebox.showinfo("Front Item", self.queue[0])
+
+    def clear_queue(self):
+        self.queue.clear()
+        self.update_list()
+        self.status.config(text="Queue cleared.")
+
+
+root = tk.Tk()
+app = QueueGUI(root)
+root.mainloop()
