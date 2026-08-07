@@ -1,0 +1,138 @@
+import heapq
+from collections import Counter
+import time
+import sys
+
+
+class Node:
+    def __init__(self, char=None, freq=None):
+        self.char = char
+        self.freq = freq
+        self.left = None
+        self.right = None
+
+    def __lt__(self, other):
+        return self.freq < other.freq
+
+
+def build_huffman_tree(frequencies):
+    heap = [Node(char, freq) for char, freq in frequencies.items()]
+    heapq.heapify(heap)
+
+    while len(heap) > 1:
+        left = heapq.heappop(heap)
+        right = heapq.heappop(heap)
+
+        merged = Node(freq=left.freq + right.freq)
+        merged.left = left
+        merged.right = right
+
+        heapq.heappush(heap, merged)
+
+        print(f"Merging nodes: {left.char} ({left.freq}) and {right.char} ({right.freq})")
+        time.sleep(0.5)
+
+    return heap[0]
+
+
+def generate_codes(node, prefix="", codebook=None):
+    if codebook is None:
+        codebook = {}
+
+    if node:
+        if node.char is not None:
+            codebook[node.char] = prefix if prefix else "0"
+            print(f"Assigning code to character '{node.char}': {codebook[node.char]}")
+            time.sleep(0.3)
+
+        generate_codes(node.left, prefix + "0", codebook)
+        generate_codes(node.right, prefix + "1", codebook)
+
+    return codebook
+
+
+def huffman_encoding(data):
+    if not data:
+        return "", {}
+
+    frequencies = Counter(data)
+
+    print("\nCharacter Frequencies:")
+    print(dict(frequencies))
+
+    root = build_huffman_tree(frequencies)
+
+    print("\nGenerating Huffman Codes...")
+    codebook = generate_codes(root)
+
+    encoded_data = "".join(codebook[char] for char in data)
+
+    print("\nEncoded Data:")
+    print(encoded_data)
+
+    return encoded_data, codebook
+
+
+def huffman_decoding(encoded_data, codebook):
+    reverse_codebook = {v: k for k, v in codebook.items()}
+
+    decoded_data = ""
+    current_code = ""
+
+    print("\nDecoding Process:")
+
+    for bit in encoded_data:
+        current_code += bit
+
+        if current_code in reverse_codebook:
+            print(f"{current_code} -> {reverse_codebook[current_code]}")
+            decoded_data += reverse_codebook[current_code]
+            current_code = ""
+            time.sleep(0.2)
+
+    return decoded_data
+
+
+def animate_text(text):
+    for char in text:
+        sys.stdout.write(char)
+        sys.stdout.flush()
+        time.sleep(0.03)
+    print()
+
+
+def main():
+    animate_text("===================================")
+    animate_text("   HUFFMAN CODING CLI APPLICATION")
+    animate_text("===================================\n")
+
+    data = input("Enter the text to encode: ")
+
+    animate_text("\nStarting Huffman Encoding...\n")
+
+    encoded_data, codebook = huffman_encoding(data)
+
+    animate_text("\nEncoding Completed!\n")
+
+    print("Huffman Codebook:")
+    for char, code in codebook.items():
+        print(f"'{char}' : {code}")
+
+    animate_text("\nStarting Huffman Decoding...\n")
+
+    decoded_data = huffman_decoding(encoded_data, codebook)
+
+    animate_text("\nDecoding Completed!\n")
+
+    print("Original Data :", data)
+    print("Decoded Data  :", decoded_data)
+
+    if data == decoded_data:
+        print("\nSUCCESS: Original and decoded data match!")
+    else:
+        print("\nERROR: Original and decoded data do not match!")
+
+
+if __name__ == "__main__":
+    main()
+
