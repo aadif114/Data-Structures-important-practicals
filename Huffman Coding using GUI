@@ -1,0 +1,323 @@
+import tkinter as tk
+from tkinter import messagebox
+import heapq
+from collections import Counter
+
+
+class Node:
+    def __init__(self, char=None, freq=None):
+        self.char = char
+        self.freq = freq
+        self.left = None
+        self.right = None
+
+    def __lt__(self, other):
+        return self.freq < other.freq
+
+
+def build_huffman_tree(freq):
+    heap = [Node(ch, fr) for ch, fr in freq.items()]
+    heapq.heapify(heap)
+
+    while len(heap) > 1:
+        left = heapq.heappop(heap)
+        right = heapq.heappop(heap)
+
+        merged = Node(freq=left.freq + right.freq)
+        merged.left = left
+        merged.right = right
+
+        heapq.heappush(heap, merged)
+
+    return heap[0]
+
+
+def generate_codes(node, prefix="", codebook=None):
+
+    if codebook is None:
+        codebook = {}
+
+    if node:
+
+        if node.char is not None:
+            codebook[node.char] = prefix if prefix else "0"
+
+        generate_codes(node.left, prefix + "0", codebook)
+        generate_codes(node.right, prefix + "1", codebook)
+
+    return codebook
+
+
+def huffman_encoding(text):
+
+    if text == "":
+        return "", {}, {}
+
+    freq = Counter(text)
+
+    root = build_huffman_tree(freq)
+
+    codebook = generate_codes(root)
+
+    encoded = "".join(codebook[ch] for ch in text)
+
+    return encoded, codebook, freq
+
+
+def huffman_decoding(encoded, codebook):
+
+    reverse = {v: k for k, v in codebook.items()}
+
+    decoded = ""
+    current = ""
+
+    for bit in encoded:
+
+        current += bit
+
+        if current in reverse:
+            decoded += reverse[current]
+            current = ""
+
+    return decoded
+
+
+class HuffmanGUI:
+
+    def __init__(self, root):
+
+        self.root = root
+        self.root.title("Huffman Coding")
+        self.root.geometry("1100x700")
+        self.root.configure(bg="#EAF6FF")
+
+        self.codebook = {}
+
+
+        heading = tk.Label(
+            root,
+            text="HUFFMAN CODING VISUALIZER",
+            font=("Arial", 20, "bold"),
+            bg="#1565C0",
+            fg="white",
+            pady=12
+        )
+
+        heading.pack(fill="x")
+
+
+        frame1 = tk.Frame(root, bg="#EAF6FF")
+        frame1.pack(pady=10)
+
+        tk.Label(
+            frame1,
+            text="Enter Text",
+            font=("Arial", 12, "bold"),
+            bg="#EAF6FF"
+        ).pack()
+
+        self.input_text = tk.Text(
+            frame1,
+            width=95,
+            height=5,
+            font=("Consolas", 11)
+        )
+
+        self.input_text.pack()
+
+
+        frame2 = tk.Frame(root, bg="#EAF6FF")
+        frame2.pack(pady=10)
+
+        tk.Button(
+            frame2,
+            text="Encode",
+            width=12,
+            bg="#4CAF50",
+            fg="white",
+            font=("Arial", 11, "bold"),
+            command=self.encode
+        ).grid(row=0, column=0, padx=8)
+
+        tk.Button(
+            frame2,
+            text="Decode",
+            width=12,
+            bg="#FF9800",
+            fg="white",
+            font=("Arial", 11, "bold"),
+            command=self.decode
+        ).grid(row=0, column=1, padx=8)
+
+        tk.Button(
+            frame2,
+            text="Clear",
+            width=12,
+            bg="#F44336",
+            fg="white",
+            font=("Arial", 11, "bold"),
+            command=self.clear
+        ).grid(row=0, column=2, padx=8)
+
+        tk.Button(
+            frame2,
+            text="Exit",
+            width=12,
+            bg="#424242",
+            fg="white",
+            font=("Arial", 11, "bold"),
+            command=root.destroy
+        ).grid(row=0, column=3, padx=8)
+
+        middle = tk.Frame(root, bg="#EAF6FF")
+        middle.pack(fill="both", expand=True, padx=10)
+
+
+        left = tk.Frame(middle, bg="#EAF6FF")
+        left.pack(side="left", fill="both", expand=True, padx=10)
+
+        tk.Label(
+            left,
+            text="Character Frequencies",
+            font=("Arial", 12, "bold"),
+            bg="#EAF6FF"
+        ).pack()
+
+        self.freq_box = tk.Text(
+            left,
+            width=40,
+            height=12,
+            font=("Consolas", 10)
+        )
+
+        self.freq_box.pack(fill="both", expand=True)
+
+
+        right = tk.Frame(middle, bg="#EAF6FF")
+        right.pack(side="right", fill="both", expand=True, padx=10)
+
+        tk.Label(
+            right,
+            text="Huffman Codebook",
+            font=("Arial", 12, "bold"),
+            bg="#EAF6FF"
+        ).pack()
+
+        self.code_box = tk.Text(
+            right,
+            width=40,
+            height=12,
+            font=("Consolas", 10)
+        )
+
+        self.code_box.pack(fill="both", expand=True)
+
+            # ==========================
+    # Encode
+    # ==========================
+
+    def encode(self):
+
+        text = self.input_text.get("1.0", tk.END).strip()
+
+        if text == "":
+            messagebox.showerror("Error", "Please enter some text.")
+            return
+
+        encoded, self.codebook, freq = huffman_encoding(text)
+
+        # Remove old widgets if they exist
+        if hasattr(self, "bottom_frame"):
+            self.bottom_frame.destroy()
+
+        # Bottom Frame
+        self.bottom_frame = tk.Frame(self.root, bg="#EAF6FF")
+        self.bottom_frame.pack(fill="both", expand=True, padx=10, pady=5)
+
+        # Frequencies
+        self.freq_box.delete("1.0", tk.END)
+        for ch, fr in freq.items():
+            self.freq_box.insert(tk.END, f"{repr(ch)} : {fr}\n")
+
+        # Codebook
+        self.code_box.delete("1.0", tk.END)
+        for ch, code in self.codebook.items():
+            self.code_box.insert(tk.END, f"{repr(ch)} : {code}\n")
+
+        # Encoded Section
+        tk.Label(
+            self.bottom_frame,
+            text="Encoded Data",
+            font=("Arial", 12, "bold"),
+            bg="#EAF6FF"
+        ).pack(anchor="w")
+
+        self.encoded_box = tk.Text(
+            self.bottom_frame,
+            height=4,
+            font=("Consolas", 10)
+        )
+        self.encoded_box.pack(fill="x", pady=5)
+
+        self.encoded_box.insert(tk.END, encoded)
+
+        # Decoded Section
+        tk.Label(
+            self.bottom_frame,
+            text="Decoded Data",
+            font=("Arial", 12, "bold"),
+            bg="#EAF6FF"
+        ).pack(anchor="w")
+
+        self.decoded_box = tk.Text(
+            self.bottom_frame,
+            height=4,
+            font=("Consolas", 10)
+        )
+        self.decoded_box.pack(fill="x")
+
+        messagebox.showinfo("Success", "Encoding Completed Successfully!")
+
+    # ==========================
+    # Decode
+    # ==========================
+
+    def decode(self):
+
+        if not self.codebook:
+            messagebox.showerror("Error", "Please encode text first.")
+            return
+
+        encoded = self.encoded_box.get("1.0", tk.END).strip()
+
+        decoded = huffman_decoding(encoded, self.codebook)
+
+        self.decoded_box.delete("1.0", tk.END)
+        self.decoded_box.insert(tk.END, decoded)
+
+        messagebox.showinfo("Success", "Decoding Completed Successfully!")
+
+    # ==========================
+    # Clear
+    # ==========================
+
+    def clear(self):
+
+        self.input_text.delete("1.0", tk.END)
+        self.freq_box.delete("1.0", tk.END)
+        self.code_box.delete("1.0", tk.END)
+
+        if hasattr(self, "encoded_box"):
+            self.encoded_box.destroy()
+
+        if hasattr(self, "decoded_box"):
+            self.decoded_box.destroy()
+
+        if hasattr(self, "bottom_frame"):
+            self.bottom_frame.destroy()
+
+        self.codebook = {}
+
+root = tk.Tk()
+app = HuffmanGUI(root)
+root.mainloop()
