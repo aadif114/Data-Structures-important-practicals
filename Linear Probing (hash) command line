@@ -1,0 +1,34 @@
+def linear_probing_insert(hash_size, data):
+    hash_table = [None] * hash_size
+
+    for value in data:
+        hash_index = value % hash_size
+
+        while hash_table[hash_index] is not None:
+            hash_index = (hash_index + 1) % hash_size
+
+        hash_table[hash_index] = value
+
+    return hash_table
+
+
+# Input
+hash_size = int(input("Enter size of hash table: "))
+n = int(input("Enter number of elements: "))
+
+data = []
+
+for i in range(n):
+    value = int(input(f"Enter element {i + 1}: "))
+    data.append(value)
+
+
+# Insert using Linear Probing
+final_table = linear_probing_insert(hash_size, data)
+
+
+# Display Hash Table
+print("\nFinal Hash Table:")
+
+for i, value in enumerate(final_table):
+    print(f"Index {i}: {value}")
