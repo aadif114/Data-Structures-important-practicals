@@ -1,0 +1,364 @@
+import tkinter as tk
+from tkinter import messagebox
+from collections import defaultdict
+
+import matplotlib.pyplot as plt
+import networkx as nx
+
+
+# -----------------------------------------
+# Graph Class
+# -----------------------------------------
+class Graph:
+
+    def __init__(self):
+        self.graph = defaultdict(list)
+
+    def add_vertex(self, vertex):
+        if vertex not in self.graph:
+            self.graph[vertex] = []
+
+    def add_edge(self, vertex1, vertex2):
+        if vertex1 in self.graph and vertex2 in self.graph:
+            self.graph[vertex1].append(vertex2)
+            self.graph[vertex2].append(vertex1)
+
+    def dfs_tree(self, start):
+
+        visited = set()
+        dfs_tree = defaultdict(list)
+
+        def dfs(v):
+            visited.add(v)
+
+            for neighbor in self.graph[v]:
+
+                if neighbor not in visited:
+
+                    dfs_tree[v].append(neighbor)
+                    dfs(neighbor)
+
+        dfs(start)
+
+        return dfs_tree
+
+
+# -----------------------------------------
+# Run DFS
+# -----------------------------------------
+def run_dfs():
+
+    vertices = vertex_entry.get().strip()
+    edges = edge_entry.get().strip()
+    start = start_entry.get().strip()
+
+    if vertices == "":
+        messagebox.showerror("Error", "Enter vertices")
+        return
+
+    if start == "":
+        messagebox.showerror("Error", "Enter starting vertex")
+        return
+
+    # Create graph
+    g = Graph()
+
+    # Add vertices
+    vertex_list = vertices.split()
+
+    for vertex in vertex_list:
+        g.add_vertex(vertex)
+
+    # Check starting vertex
+    if start not in g.graph:
+        messagebox.showerror(
+            "Error",
+            "Starting vertex does not exist"
+        )
+        return
+
+    # Add edges
+    if edges != "":
+
+        edge_list = edges.split(",")
+
+        for edge in edge_list:
+
+            parts = edge.strip().split()
+
+            if len(parts) != 2:
+                messagebox.showerror(
+                    "Error",
+                    "Enter edges like: A B, A C, B D"
+                )
+                return
+
+            vertex1 = parts[0]
+            vertex2 = parts[1]
+
+            if vertex1 not in g.graph or vertex2 not in g.graph:
+                messagebox.showerror(
+                    "Error",
+                    f"Invalid edge: {vertex1} {vertex2}"
+                )
+                return
+
+            g.add_edge(vertex1, vertex2)
+
+    # Perform DFS
+    dfs_tree = g.dfs_tree(start)
+
+    # -----------------------------------------
+    # Display DFS Output in GUI
+    # -----------------------------------------
+
+    output_text.delete("1.0", tk.END)
+
+    output_text.insert(
+        tk.END,
+        "DEPTH-FIRST TREE\n"
+    )
+
+    output_text.insert(
+        tk.END,
+        "-----------------------------\n"
+    )
+
+    for vertex, edges in dfs_tree.items():
+        output_text.insert(
+            tk.END,
+            f"{vertex}: {edges}\n"
+        )
+
+    # -----------------------------------------
+    # Create Original Graph
+    # -----------------------------------------
+
+    G = nx.Graph()
+
+    for vertex in g.graph:
+
+        G.add_node(vertex)
+
+        for neighbor in g.graph[vertex]:
+            G.add_edge(vertex, neighbor)
+
+    # -----------------------------------------
+    # Create DFS Tree
+    # -----------------------------------------
+
+    T = nx.DiGraph()
+
+    for vertex in dfs_tree:
+
+        for child in dfs_tree[vertex]:
+
+            T.add_edge(vertex, child)
+
+    # -----------------------------------------
+    # Matplotlib Visualization
+    # -----------------------------------------
+
+    plt.figure(figsize=(12, 6))
+
+    # Original Graph
+    plt.subplot(1, 2, 1)
+
+    pos = nx.spring_layout(G)
+
+    nx.draw(
+        G,
+        pos,
+        with_labels=True,
+        node_color="lightblue",
+        edge_color="gray",
+        node_size=1000,
+        font_size=15,
+        font_weight="bold"
+    )
+
+    plt.title("Graph")
+
+    # DFS Tree
+    plt.subplot(1, 2, 2)
+
+    if len(T.nodes()) > 0:
+
+        pos_tree = nx.spring_layout(T)
+
+        nx.draw(
+            T,
+            pos_tree,
+            with_labels=True,
+            node_color="lightgreen",
+            edge_color="blue",
+            node_size=1000,
+            font_size=15,
+            font_weight="bold",
+            arrows=True
+        )
+
+    plt.title("DFS Tree")
+
+    plt.tight_layout()
+
+    # Show Matplotlib window
+    plt.show()
+
+
+# -----------------------------------------
+# Clear Function
+# -----------------------------------------
+def clear_data():
+
+    vertex_entry.delete(0, tk.END)
+    edge_entry.delete(0, tk.END)
+    start_entry.delete(0, tk.END)
+    output_text.delete("1.0", tk.END)
+
+
+# -----------------------------------------
+# Tkinter GUI
+# -----------------------------------------
+
+root = tk.Tk()
+
+root.title("Depth First Tree using Graph")
+
+root.geometry("700x650")
+
+root.resizable(False, False)
+
+
+# -----------------------------------------
+# Title
+# -----------------------------------------
+
+title_label = tk.Label(
+    root,
+    text="DEPTH FIRST TREE",
+    font=("Arial", 24, "bold")
+)
+
+title_label.pack(pady=20)
+
+
+# -----------------------------------------
+# Vertices
+# -----------------------------------------
+
+vertex_label = tk.Label(
+    root,
+    text="Enter Vertices:",
+    font=("Arial", 13)
+)
+
+vertex_label.pack()
+
+vertex_entry = tk.Entry(
+    root,
+    font=("Arial", 13),
+    width=50
+)
+
+vertex_entry.pack(pady=8)
+
+
+# -----------------------------------------
+# Edges
+# -----------------------------------------
+
+edge_label = tk.Label(
+    root,
+    text="Enter Edges (Example: A B, A C, B D):",
+    font=("Arial", 13)
+)
+
+edge_label.pack(pady=8)
+
+edge_entry = tk.Entry(
+    root,
+    font=("Arial", 13),
+    width=55
+)
+
+edge_entry.pack(pady=8)
+
+
+# -----------------------------------------
+# Starting Vertex
+# -----------------------------------------
+
+start_label = tk.Label(
+    root,
+    text="Enter Starting Vertex:",
+    font=("Arial", 13)
+)
+
+start_label.pack(pady=8)
+
+start_entry = tk.Entry(
+    root,
+    font=("Arial", 13),
+    width=20
+)
+
+start_entry.pack(pady=8)
+
+
+# -----------------------------------------
+# Buttons
+# -----------------------------------------
+
+button_frame = tk.Frame(root)
+
+button_frame.pack(pady=20)
+
+run_button = tk.Button(
+    button_frame,
+    text="Run DFS",
+    font=("Arial", 12, "bold"),
+    width=15,
+    command=run_dfs
+)
+
+run_button.grid(row=0, column=0, padx=10)
+
+clear_button = tk.Button(
+    button_frame,
+    text="Clear",
+    font=("Arial", 12, "bold"),
+    width=15,
+    command=clear_data
+)
+
+clear_button.grid(row=0, column=1, padx=10)
+
+
+# -----------------------------------------
+# Output
+# -----------------------------------------
+
+output_label = tk.Label(
+    root,
+    text="DFS Tree Output:",
+    font=("Arial", 14, "bold")
+)
+
+output_label.pack()
+
+output_text = tk.Text(
+    root,
+    font=("Courier New", 12),
+    width=60,
+    height=12
+)
+
+output_text.pack(pady=10)
+
+
+# -----------------------------------------
+# Start GUI
+# -----------------------------------------
+
+root.mainloop()
