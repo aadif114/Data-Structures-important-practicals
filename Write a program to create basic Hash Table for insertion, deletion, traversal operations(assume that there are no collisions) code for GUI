@@ -1,0 +1,520 @@
+import tkinter as tk
+from tkinter import messagebox
+
+SIZE = 10
+hash_table = [-1] * SIZE
+
+
+def hash_function(key):
+    return key % SIZE
+
+
+
+def insert():
+    try:
+        key = int(entry_key.get())
+    except ValueError:
+        messagebox.showerror(
+            "Invalid Input",
+            "Please enter a valid integer."
+        )
+        return
+
+    index = hash_function(key)
+
+    if hash_table[index] == -1:
+
+        hash_table[index] = key
+
+        update_table()
+
+        status_label.config(
+            text=f"✓ {key} inserted at index {index}",
+            fg="green"
+        )
+
+        entry_key.delete(0, tk.END)
+        entry_key.focus()
+
+    else:
+
+        messagebox.showwarning(
+            "Collision",
+            f"Index {index} is already occupied by "
+            f"{hash_table[index]}.\n\n"
+            "Collisions are not handled in this program."
+        )
+
+
+
+def delete():
+
+    try:
+        key = int(entry_key.get())
+    except ValueError:
+
+        messagebox.showerror(
+            "Invalid Input",
+            "Please enter a valid integer."
+        )
+
+        return
+
+    index = hash_function(key)
+
+    if hash_table[index] == key:
+
+        hash_table[index] = -1
+
+        update_table()
+
+        status_label.config(
+            text=f"✓ {key} deleted successfully",
+            fg="green"
+        )
+
+        entry_key.delete(0, tk.END)
+        entry_key.focus()
+
+    else:
+
+        messagebox.showwarning(
+            "Not Found",
+            f"{key} was not found in the hash table."
+        )
+
+
+
+def traverse():
+
+    update_table()
+
+    elements = []
+
+    for i in range(SIZE):
+
+        if hash_table[i] != -1:
+            elements.append(
+                f"Index {i}: {hash_table[i]}"
+            )
+
+        else:
+            elements.append(
+                f"Index {i}: Empty"
+            )
+
+    messagebox.showinfo(
+        "Hash Table Contents",
+        "\n".join(elements)
+    )
+
+    status_label.config(
+        text="Hash table displayed successfully.",
+        fg="blue"
+    )
+
+
+
+def update_table():
+
+    for i in range(SIZE):
+
+        if hash_table[i] == -1:
+
+            table_labels[i].config(
+                text="Empty",
+                bg="#f1f5f9",
+                fg="#64748b"
+            )
+
+        else:
+
+            table_labels[i].config(
+                text=str(hash_table[i]),
+                bg="#d1fae5",
+                fg="#065f46"
+            )
+
+
+def clear_input():
+
+    entry_key.delete(0, tk.END)
+    entry_key.focus()
+
+    status_label.config(
+        text="Input cleared.",
+        fg="#334155"
+    )
+
+
+
+def exit_app():
+
+    root.destroy()
+
+
+
+root = tk.Tk()
+
+root.title("Hash Table - Insert, Delete & Traverse")
+
+root.geometry("700x800")
+
+root.resizable(True, True)
+
+root.configure(bg="#e2e8f0")
+
+
+
+canvas = tk.Canvas(
+    root,
+    bg="#e2e8f0",
+    highlightthickness=0
+)
+
+scrollbar = tk.Scrollbar(
+    root,
+    orient="vertical",
+    command=canvas.yview
+)
+
+scrollable_frame = tk.Frame(
+    canvas,
+    bg="#e2e8f0"
+)
+
+
+scrollable_frame.bind(
+    "<Configure>",
+    lambda e: canvas.configure(
+        scrollregion=canvas.bbox("all")
+    )
+)
+
+
+canvas_window = canvas.create_window(
+    (0, 0),
+    window=scrollable_frame,
+    anchor="nw"
+)
+
+
+canvas.configure(
+    yscrollcommand=scrollbar.set
+)
+
+
+canvas.pack(
+    side="left",
+    fill="both",
+    expand=True
+)
+
+scrollbar.pack(
+    side="right",
+    fill="y"
+)
+
+
+
+def resize_frame(event):
+
+    canvas.itemconfig(
+        canvas_window,
+        width=event.width
+    )
+
+
+canvas.bind(
+    "<Configure>",
+    resize_frame
+)
+
+
+
+title = tk.Label(
+    scrollable_frame,
+    text="HASH TABLE",
+    font=("Arial", 26, "bold"),
+    bg="#1e3a8a",
+    fg="white",
+    pady=18
+)
+
+title.pack(
+    fill="x"
+)
+
+
+
+subtitle = tk.Label(
+    scrollable_frame,
+    text="Basic Hash Table (No Collision Handling)",
+    font=("Arial", 12),
+    bg="#e2e8f0",
+    fg="#475569"
+)
+
+subtitle.pack(pady=12)
+
+
+
+input_frame = tk.Frame(
+    scrollable_frame,
+    bg="white",
+    padx=20,
+    pady=20
+)
+
+input_frame.pack(
+    padx=40,
+    pady=10,
+    fill="x"
+)
+
+
+label_key = tk.Label(
+    input_frame,
+    text="Enter Key:",
+    font=("Arial", 13, "bold"),
+    bg="white"
+)
+
+label_key.grid(
+    row=0,
+    column=0,
+    padx=10
+)
+
+
+entry_key = tk.Entry(
+    input_frame,
+    font=("Arial", 14),
+    width=25,
+    justify="center"
+)
+
+entry_key.grid(
+    row=0,
+    column=1,
+    padx=10
+)
+
+entry_key.focus()
+
+
+button_frame = tk.Frame(
+    scrollable_frame,
+    bg="#e2e8f0"
+)
+
+button_frame.pack(pady=12)
+
+
+
+insert_button = tk.Button(
+    button_frame,
+    text="INSERT",
+    command=insert,
+    font=("Arial", 11, "bold"),
+    bg="#16a34a",
+    fg="white",
+    width=12,
+    height=2,
+    cursor="hand2"
+)
+
+insert_button.grid(
+    row=0,
+    column=0,
+    padx=5
+)
+
+
+
+delete_button = tk.Button(
+    button_frame,
+    text="DELETE",
+    command=delete,
+    font=("Arial", 11, "bold"),
+    bg="#dc2626",
+    fg="white",
+    width=12,
+    height=2,
+    cursor="hand2"
+)
+
+delete_button.grid(
+    row=0,
+    column=1,
+    padx=5
+)
+
+
+
+traverse_button = tk.Button(
+    button_frame,
+    text="TRAVERSE",
+    command=traverse,
+    font=("Arial", 11, "bold"),
+    bg="#2563eb",
+    fg="white",
+    width=12,
+    height=2,
+    cursor="hand2"
+)
+
+traverse_button.grid(
+    row=0,
+    column=2,
+    padx=5
+)
+
+
+
+clear_button = tk.Button(
+    button_frame,
+    text="CLEAR",
+    command=clear_input,
+    font=("Arial", 11, "bold"),
+    bg="#64748b",
+    fg="white",
+    width=12,
+    height=2,
+    cursor="hand2"
+)
+
+clear_button.grid(
+    row=0,
+    column=3,
+    padx=5
+)
+
+
+
+table_frame = tk.Frame(
+    scrollable_frame,
+    bg="white",
+    padx=20,
+    pady=20
+)
+
+table_frame.pack(
+    padx=40,
+    pady=10,
+    fill="x"
+)
+
+heading_index = tk.Label(
+    table_frame,
+    text="INDEX",
+    font=("Arial", 11, "bold"),
+    bg="#1e3a8a",
+    fg="white",
+    width=15,
+    pady=8
+)
+
+heading_index.grid(
+    row=0,
+    column=0,
+    padx=2,
+    pady=2
+)
+
+
+
+heading_value = tk.Label(
+    table_frame,
+    text="VALUE",
+    font=("Arial", 11, "bold"),
+    bg="#1e3a8a",
+    fg="white",
+    width=25,
+    pady=8
+)
+
+heading_value.grid(
+    row=0,
+    column=1,
+    padx=2,
+    pady=2
+)
+
+
+table_labels = []
+
+
+for i in range(SIZE):
+
+    
+
+    index_label = tk.Label(
+        table_frame,
+        text=str(i),
+        font=("Arial", 11, "bold"),
+        bg="#dbeafe",
+        fg="#1e3a8a",
+        width=15,
+        pady=7
+    )
+
+    index_label.grid(
+        row=i + 1,
+        column=0,
+        padx=2,
+        pady=2
+    )
+
+
+  
+
+    value_label = tk.Label(
+        table_frame,
+        text="Empty",
+        font=("Arial", 11),
+        bg="#f1f5f9",
+        fg="#64748b",
+        width=25,
+        pady=7
+    )
+
+    value_label.grid(
+        row=i + 1,
+        column=1,
+        padx=2,
+        pady=2
+    )
+
+
+    table_labels.append(value_label)
+
+
+status_label = tk.Label(
+    scrollable_frame,
+    text="Ready. Enter a key to begin.",
+    font=("Arial", 11, "bold"),
+    bg="#e2e8f0",
+    fg="#334155"
+)
+
+status_label.pack(pady=12)
+
+
+
+exit_button = tk.Button(
+    scrollable_frame,
+    text="EXIT",
+    command=exit_app,
+    font=("Arial", 11, "bold"),
+    bg="#7f1d1d",
+    fg="white",
+    width=15,
+    height=2,
+    cursor="hand2"
+)
+
+exit_button.pack(pady=10)
+
+
+root.mainloop()
